@@ -26,6 +26,8 @@ export class CharacterView {
   private currentAction: string;
   private currentDirection: CharacterDirection;
   private displayHeight: number;
+  /** Extra uniform scale applied on top of displayHeight (highlight, etc.). */
+  private emphasisScale = 1;
 
   constructor(
     scene: Phaser.Scene,
@@ -80,8 +82,9 @@ export class CharacterView {
     }
 
     if (animChanged) {
-      // Resize for the new direction's native art dimensions (front/
-      // back/side walk sheets differ slightly in per-frame width).
+      // Resize for the new direction's native art dimensions. Idle and
+      // walk sheets now share a common frame size so this is a no-op
+      // for Foxie, but it still protects mixed-size bodies.
       this.applyDisplaySizing(resolved.frames.frameWidth, resolved.frames.frameHeight);
       this.applyPhysicsBody();
     }
@@ -118,7 +121,8 @@ export class CharacterView {
     if (!socket) {
       throw new Error(`CharacterView: character "${this.characterId}" has no socket "${socketId}"`);
     }
-    const x = this.sprite.x + socket.xOffsetFraction * this.sprite.displayWidth;
+    const xSign = this.sprite.flipX ? -1 : 1;
+    const x = this.sprite.x + socket.xOffsetFraction * xSign * this.sprite.displayWidth;
     const y = this.sprite.y + socket.yOffsetFraction * this.sprite.displayHeight;
     return { x, y };
   }
@@ -130,9 +134,51 @@ export class CharacterView {
     return this.sprite.y + this.sprite.displayHeight / 2;
   }
 
+  /**
+   * Visual emphasis (e.g. NPC highlight) without mutating Phaser's
+   * scaleX/scaleY — those are owned by applyDisplaySizing so a highlight
+   * that called sprite.setScale(1.06) used to fight the display-size
+   * contract and jitter the physics body.
+   */
+  setEmphasisScale(scale: number): void {
+    this.emphasisScale = scale;
+    const frames = this.registry.resolveDirection(
+      this.characterId,
+      this.currentAction,
+      this.currentDirection
+    );
+    this.applyDisplaySizing(frames.frames.frameWidth, frames.frames.frameHeight);
+  }
+
+  /** Pause/resume the current Phaser animation without changing action. */
+  setPaused(paused: boolean): void {
+    if (paused) this.sprite.anims.pause();
+    else this.sprite.anims.resume();
+  }
+
+  isPaused(): boolean {
+    return this.sprite.anims.isPaused;
+  }
+
+  /** Seek to a 0-based frame inside the current animation (dev-lab scrubber). */
+  seekFrame(frameIndex: number): void {
+    const anim = this.sprite.anims.currentAnim;
+    if (!anim) return;
+    const frame = anim.frames[Phaser.Math.Clamp(frameIndex, 0, anim.frames.length - 1)];
+    if (frame) this.sprite.anims.setCurrentFrame(frame);
+  }
+
+  getCurrentFrameIndex(): number {
+    return this.sprite.anims.currentFrame?.index ?? 0;
+  }
+
+  getCurrentFrameCount(): number {
+    return this.sprite.anims.currentAnim?.frames.length ?? 1;
+  }
+
   private applyDisplaySizing(nativeWidth: number, nativeHeight: number): void {
-    const scale = this.displayHeight / nativeHeight;
-    this.sprite.setDisplaySize(nativeWidth * scale, this.displayHeight);
+    const scale = (this.displayHeight / nativeHeight) * this.emphasisScale;
+    this.sprite.setDisplaySize(nativeWidth * scale, this.displayHeight * this.emphasisScale);
   }
 
   /** Sizes the Arcade Physics collider to just the "feet" area of a tall

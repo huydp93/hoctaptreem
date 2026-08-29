@@ -3,6 +3,7 @@ import { BootScene } from '../scenes/BootScene';
 import { PreloadScene } from '../scenes/PreloadScene';
 import { VillageScene } from '../scenes/VillageScene';
 import { UIScene } from '../scenes/UIScene';
+import { DevLabScene } from '../scenes/DevLabScene';
 
 /**
  * Central Phaser game configuration.
@@ -31,5 +32,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     pixelArt: false,
     antialias: true
   },
-  scene: [BootScene, PreloadScene, VillageScene, UIScene]
+  scene: [BootScene, PreloadScene, VillageScene, UIScene, DevLabScene]
 };

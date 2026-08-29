@@ -1,19 +1,17 @@
 import Phaser from 'phaser';
 import { CharacterView, CharacterDirection } from '../character/CharacterView';
 import { CharacterRegistry } from '../character/CharacterRegistry';
+import { SaveService } from '../../services/SaveService';
 
 export type PlayerDirection = CharacterDirection;
 
-const CHARACTER_ID = 'foxie';
-
 /**
- * The player game object: "Foxie" (Hiệp Sĩ Cáo).
+ * The player game object. Body id is resolved from SaveService appearance
+ * (with a foxie fallback) so adding a second playable body later is a
+ * data/save change, not a Player.ts rewrite.
  *
- * All texture/animation/sizing concerns are delegated to CharacterView,
- * which resolves everything from the 'foxie' CharacterManifest
- * (src/data/characters/foxie.ts). Player.ts itself only owns
- * movement-facing decisions (which direction/action to request) — it
- * never touches a texture key or pixel offset directly anymore.
+ * All texture/animation/sizing concerns are delegated to CharacterView.
+ * Player.ts itself only owns movement-facing decisions.
  */
 export class Player {
   public sprite: Phaser.Physics.Arcade.Sprite;
@@ -22,7 +20,9 @@ export class Player {
   private isMoving = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    this.view = new CharacterView(scene, CharacterRegistry, CHARACTER_ID, x, y, 'idle', 'down');
+    const savedBody = SaveService.getAppearance().bodyId;
+    const characterId = CharacterRegistry.has(savedBody) ? savedBody : 'foxie';
+    this.view = new CharacterView(scene, CharacterRegistry, characterId, x, y, 'idle', 'down');
     this.sprite = this.view.sprite;
     this.sprite.setCollideWorldBounds(true);
     this.sprite.setDepth(50);

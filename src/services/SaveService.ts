@@ -1,4 +1,4 @@
-import { DEFAULT_SAVE_DATA, SaveData, QuestProgressRecord } from '../types/Save';
+import { DEFAULT_SAVE_DATA, SaveData, QuestProgressRecord, AppearanceSave } from '../types/Save';
 
 const STORAGE_KEY = 'lang-chu-cai-save-v1';
 
@@ -19,14 +19,18 @@ class SaveServiceImpl {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return structuredCloneSafe(DEFAULT_SAVE_DATA);
-      const parsed = JSON.parse(raw) as SaveData;
-      // Basic shape defense in case of future migrations
+      const parsed = JSON.parse(raw) as Partial<SaveData>;
+      // Basic shape defense + v1→v2 appearance migration. Re-runnable:
+      // missing/invalid bodyId falls back to the default Foxie body without
+      // wiping stars/quests the player already owns.
+      const appearance = migrateAppearance(parsed.appearance);
       return {
-        version: parsed.version ?? 1,
+        version: 2,
         stars: parsed.stars ?? 0,
         completedQuests: parsed.completedQuests ?? [],
         learnedWords: parsed.learnedWords ?? [],
-        questProgress: parsed.questProgress ?? {}
+        questProgress: parsed.questProgress ?? {},
+        appearance
       };
     } catch (e) {
       console.warn('[SaveService] Failed to load save, using defaults.', e);
@@ -106,10 +110,29 @@ class SaveServiceImpl {
     this.data = structuredCloneSafe(DEFAULT_SAVE_DATA);
     this.persist();
   }
+
+  getAppearance(): AppearanceSave {
+    return this.data.appearance;
+  }
+
+  setAppearanceBody(bodyId: string): void {
+    this.data.appearance = migrateAppearance({ bodyId });
+    this.persist();
+  }
 }
 
 function structuredCloneSafe<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
+}
+
+const KNOWN_BODY_IDS = new Set(['foxie']);
+
+function migrateAppearance(raw: AppearanceSave | undefined): AppearanceSave {
+  const bodyId =
+    raw?.bodyId && KNOWN_BODY_IDS.has(raw.bodyId)
+      ? raw.bodyId
+      : DEFAULT_SAVE_DATA.appearance.bodyId;
+  return { bodyId };
 }
 
 /** Singleton export — one save-state for the whole game session. */

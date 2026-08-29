@@ -27,4 +27,8 @@ export class NPCManager {
   getById(id: string): NPC | undefined {
     return this.npcs.get(id);
   }
+
+  getAll(): NPC[] {
+    return Array.from(this.npcs.values());
+  }
 }

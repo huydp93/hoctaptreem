@@ -25,11 +25,11 @@ Start → điều khiển Hiệp Sĩ Cáo → gặp Thỏ Thông Thái → nhậ
 
 Cụ thể:
 - 1 map "Làng Chữ Cái" vẽ tay hoàn chỉnh (village_map.jpg, 1600x1073) với 7 khu vực (Nhà Cáo, Trường học, Vườn trái cây, Hồ nước, Tiệm kẹo, Tháp Phép Thuật, Sân chơi) được đánh dấu bằng nhãn nổi trên đúng vị trí công trình vẽ tay
-- 1 Player "Hiệp Sĩ Cáo" (Foxie): 3 sprite thật (fox_front/back/side) ánh xạ theo 4 hướng di chuyển, camera theo dõi, collision với nhà/tháp/hồ + cây/đá trang trí, movement độc lập frame rate (Arcade Physics velocity)
-- 1 NPC "Thỏ Thông Thái": sprite thật (rabbit_npc), hội thoại theo cốt truyện Hiệp Sĩ Cáo giải cứu Công Chúa Tri Thức, giao nhiệm vụ
+- 1 Player "Hiệp Sĩ Cáo" (Foxie): CharacterView data-driven — idle 1 frame + walk 4 frame thật (contact → passing) theo 4 hướng (right = mirror left), camera theo dõi, collision với nhà/tháp/hồ + cây/đá + NPC, movement độc lập frame rate
+- 1 NPC "Thỏ Thông Thái": CharacterView (`wise_rabbit`) — idle + talk 4 frame khi hội thoại, giao nhiệm vụ
 - 6 world object tương tác với icon minh họa thật: bàn, bút, bát (đúng) / cốc, ghế, mèo (decoy)
 - Quest "Giải Cứu Công Chúa Tri Thức": +1 sao/từ đúng (thắp sáng 1 trang Sách Phép), chống spam (không cộng sao trùng), phản hồi thân thiện khi sai ("Trang sách này chưa sáng lên đâu!"), màn hình hoàn thành có hiệu ứng sao + nút Tiếp tục/Chơi lại
-- HUD: ⭐ số sao, 📖 nhiệm vụ hiện tại, ⚙ cài đặt
+- HUD: ⭐ số sao, 📖 nhiệm vụ hiện tại, 🧪 Development Lab, ⚙ cài đặt
 - Input: Keyboard (WASD/Arrow/E/Space) + Touch (virtual joystick trái, nút tương tác phải) — cùng chảy qua 1 `InputManager` duy nhất
 - Save: `SaveService` (localStorage) — điểm truy cập localStorage duy nhất trong codebase
 - Orientation guard: gợi ý xoay ngang trên mobile portrait
@@ -40,7 +40,8 @@ src/
   main.ts                    # Entry point
   game/
     config/gameConfig.ts     # Phaser.Game config (scale RESIZE, Arcade physics)
-    scenes/                  # BootScene → PreloadScene → VillageScene + UIScene
+    scenes/                  # BootScene → PreloadScene → VillageScene + UIScene + DevLabScene
+    character/               # CharacterRegistry, CharacterView, preload/animations/sockets
     player/                  # Player (sprite/physics), PlayerController (input→velocity)
     input/                   # InputManager (nguồn sự thật), KeyboardInput, TouchInput, VirtualJoystick
     npc/                     # NPC, NPCManager
@@ -48,10 +49,10 @@ src/
     quests/                  # QuestManager (data-driven engine), QuestState, objectiveEvaluators
     education/               # LessonManager, VocabularyManager
     ui/                      # HUD, DialogueUI, QuestUI, CompletionUI, FeedbackToast
-  data/                      # lessons/, vocabulary/, quests/, npc/, worldObjects.ts — nội dung thuần data
-  services/SaveService.ts    # Điểm truy cập localStorage duy nhất
-  types/                     # Education.ts, Save.ts, Input.ts
-public/assets/               # Sẵn thư mục cho art/audio thật sau này
+  data/                      # lessons/, vocabulary/, quests/, npc/, characters/, worldObjects.ts
+  services/SaveService.ts    # localStorage duy nhất (+ appearance migration v2)
+  types/                     # Education.ts, Save.ts, Input.ts, Character.ts
+public/assets/               # characters/ (idle + walk), npc/, environment/, objects/
 ```
 
 **Input flow:** Keyboard / Touch(Joystick) → `InputManager` → `PlayerController` / `InteractionManager`. Gameplay không biết đang chạy trên thiết bị nào.
@@ -60,25 +61,46 @@ public/assets/               # Sẵn thư mục cho art/audio thật sau này
 
 **Thêm quest mới** (vần "an", thanh sắc, nghe-tìm, ghép chữ...) chỉ cần: thêm data (`data/vocabulary/*.ts`, `data/quests/*.ts`) + (nếu là loại objective mới) 1 evaluator trong `objectiveEvaluators.ts`. Không cần sửa `QuestManager`, `VillageScene`.
 
-## Đồ họa hiện tại — Nâng cấp "Hiệp Sĩ Cáo" 🦊
-Sau khi playtest bản placeholder (hình khối màu phẳng), đã thay bằng art thật theo mascot **Foxie** và cốt truyện mới **"Hiệp Sĩ Cáo & Hành Trình Giải Cứu Công Chúa Tri Thức"**:
-- `assets/characters/fox_front.png`, `fox_back.png`, `fox_side.png` — 3 pose Foxie (phong cách 3D Pixar, kính, khăn quàng xanh, áo vest thám hiểm)
-- `assets/npc/rabbit_npc.png` — Thỏ Thông Thái, người giữ Sách Phép
-- `assets/environment/village_map.jpg` — bản đồ làng vẽ tay đầy đủ (nhà nấm, hồ, trường, vườn, tiệm kẹo, tháp tím, sân chơi), thay thế hoàn toàn nền cỏ ô vuông + hình chữ nhật màu cũ
-- `assets/environment/tree.png`, `rock.png` — cây/đá trang trí phong cách hoạt hình
-- `assets/objects/obj_*.png` — 6 icon đồ vật minh họa (bàn/bút/bát/cốc/ghế/mèo) trên thẻ pastel bo góc
+## Hệ thống nhân vật 2D
 
-Góc nhìn top-down giữ nguyên (không chuyển isometric) — chỉ nâng cấp chất lượng art, không đổi kiến trúc engine. `placeholderAssets.ts` giờ chỉ còn sinh 1 texture (`particle_star`) cho hiệu ứng hạt; mọi nhân vật/NPC/môi trường/vật thể khác dùng ảnh thật load qua `PreloadScene.preload()`.
+Mọi nhân vật đi qua **một runtime chung** (`CharacterView` + `CharacterRegistry`). Thêm body/action mới = thêm manifest trong `src/data/characters/`, không sửa Player/NPC/Village.
 
-## Chưa làm (ngoài phạm vi vertical slice)
-- Âm thanh (audio/AudioManager chưa có file thật)
-- Animation spritesheet đi bộ thật (hiện dùng 3 pose tĩnh + hiệu ứng bob đơn giản)
-- Nhiều quest/lesson khác ngoài chữ B (nội dung Sách Phép của công chúa cho các trang chữ tiếp theo)
-- Backend thay localStorage (SaveService đã sẵn sàng để thay)
-- Settings panel đầy đủ (hiện chỉ có nút reset progress qua `confirm()`)
+| Body | Actions | Hướng |
+| --- | --- | --- |
+| `foxie` | idle (1 frame), walk (4 frame, gait contact→passing) | down / up / left authored, right = mirror left |
+| `wise_rabbit` | idle (1 frame), talk (4 frame) | down only (NPC đứng yên) |
+
+- Walk sheets: `public/assets/characters/foxie_walk_{down,side,up}.png` — 4 khung 192×220, chân cùng ground line
+- Idle sheets padded cùng kích thước walk để không giật neo khi đổi idle↔walk
+- Socket dùng chung (`root`, `ground`, `prompt`, `label`, `badge`, `hand_main`, `hand_off`, `back`) — mirror theo `flipX`
+- Save v2: `appearance.bodyId` (migrate từ v1, body lạ bị làm sạch về `foxie`)
+
+**Development Lab:** nút 🧪 trên HUD, hoặc `/?lab=1`. Dùng đúng CharacterView/Registry. Phím: B body, ←/→ action, ↑/↓ hướng, P play/pause, `,` `.` frame, S socket, ESC làng.
+
+**Kiểm thử:**
+```bash
+npm test              # manifest + attachment + migration + tsc
+npm run test:manifest
+npm run test:attachment
+npm run test:migration
+```
+
+## Đồ họa hiện tại
+- `assets/characters/foxie_idle_*.png` + `foxie_walk_*.png` — Foxie (kính, khăn xanh, vest, sách ENGLISH)
+- `assets/npc/rabbit_idle_down.png` + `rabbit_talk.png` — Thỏ Thông Thái
+- `assets/environment/village_map.jpg` — bản đồ làng vẽ tay 1600×1073
+- `assets/environment/tree.png`, `rock.png` — cây/đá
+- `assets/objects/obj_*.png` — 6 icon đồ vật
+
+## Chưa làm
+- Âm thanh (SFX / giọng đọc / nhạc nền)
+- Nhiều quest/lesson khác ngoài chữ B
+- Backend thay localStorage
+- Settings panel đầy đủ
+- Visual layer trang bị (outfit/weapon) — socket đã dành sẵn, gameplay hiện không có trang bị
 
 ## Gợi ý bước tiếp theo
-1. Chơi thử trên PC (đã test) rồi trên tablet/phone thật qua URL preview
-2. Thêm spritesheet đi bộ thật cho Foxie (hiện chỉ có 3 pose tĩnh)
-3. Thêm quest thứ 2 (ví dụ chữ C, mở khóa chương tiếp theo của Sách Phép) để kiểm chứng engine mở rộng không cần sửa code
-4. Thêm âm thanh (SFX khi tìm đúng, giọng đọc từ vựng, nhạc nền làng)
+1. Chơi thử walk-cycle 4 hướng trên PC rồi tablet
+2. Mở Development Lab (`/?lab=1`) để soi gait / socket / audit
+3. Thêm quest chữ C (chỉ data) để kiểm chứng engine mở rộng
+4. Thêm âm thanh

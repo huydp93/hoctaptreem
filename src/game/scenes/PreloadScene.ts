@@ -41,7 +41,8 @@ export class PreloadScene extends Phaser.Scene {
   create(): void {
     generatePlaceholderTextures(this);
     registerCharacterAnimations(this, CharacterRegistry);
-    this.scene.start('VillageScene');
-    this.scene.start('UIScene');
+    const openLab = new URLSearchParams(window.location.search).get('lab') === '1';
+    this.scene.start(openLab ? 'DevLabScene' : 'VillageScene');
+    if (!openLab) this.scene.start('UIScene');
   }
 }

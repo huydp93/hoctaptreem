@@ -11,6 +11,7 @@ export class HUD {
   private starText: Phaser.GameObjects.Text;
   private starContainer: Phaser.GameObjects.Container;
   private settingsButton: Phaser.GameObjects.Text;
+  private labButton: Phaser.GameObjects.Text;
   private currentStars = 0;
 
   constructor(scene: Phaser.Scene, initialStars: number, onSettingsClick: () => void) {
@@ -49,6 +50,24 @@ export class HUD {
 
     this.settingsButton.on('pointerdown', onSettingsClick);
 
+    this.labButton = scene.add
+      .text(0, 0, '🧪', {
+        fontSize: '28px',
+        color: '#ffffff',
+        backgroundColor: '#5c6bc0',
+        padding: { x: 10, y: 6 }
+      })
+      .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .setDepth(2000)
+      .setInteractive({ useHandCursor: true });
+    this.labButton.on('pointerdown', () => {
+      const village = scene.scene.get('VillageScene');
+      village.scene.pause();
+      scene.scene.pause();
+      scene.scene.launch('DevLabScene');
+    });
+
     this.layout();
     scene.scale.on('resize', this.layout, this);
   }
@@ -56,6 +75,7 @@ export class HUD {
   private layout(): void {
     const { width } = this.scene.scale;
     this.settingsButton.setPosition(width - 20, 20);
+    this.labButton.setPosition(width - 84, 20);
   }
 
   setStars(stars: number): void {
@@ -73,5 +93,6 @@ export class HUD {
     this.scene.scale.off('resize', this.layout, this);
     this.starContainer.destroy();
     this.settingsButton.destroy();
+    this.labButton.destroy();
   }
 }

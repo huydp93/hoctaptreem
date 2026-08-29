@@ -47,9 +47,6 @@ export class UIScene extends Phaser.Scene {
   }
 
   private handleDialogueRequested = (speaker: string, lines: string[], onComplete: () => void): void => {
-    // Pause player movement input feel by simply relying on dialogue box
-    // grabbing pointer focus; movement keys are harmless while talking
-    // since child attention is on the dialogue box.
     this.dialogueUI.show(speaker, lines, onComplete);
   };
 
@@ -71,9 +68,13 @@ export class UIScene extends Phaser.Scene {
 
   private handleQuestCompleted = (quest: Quest): void => {
     this.questUI.hide();
+    this.villageScene.events.emit('movement-lock-requested', true);
     this.completionUI.show(
       quest.title,
-      () => this.completionUI.hide(),
+      () => {
+        this.completionUI.hide();
+        this.villageScene.events.emit('movement-lock-requested', false);
+      },
       () => this.villageScene.events.emit('restart-quest-requested')
     );
   };

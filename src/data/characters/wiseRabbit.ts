@@ -32,9 +32,9 @@ export const wiseRabbitManifest: CharacterManifest = {
       directions: {
         down: {
           textureKey: 'rabbit_idle_down',
-          path: 'assets/npc/rabbit_npc.png',
+          path: 'assets/npc/rabbit_idle_down.png',
           frameCount: 1,
-          frameWidth: 115,
+          frameWidth: 137,
           frameHeight: 220
         }
       }

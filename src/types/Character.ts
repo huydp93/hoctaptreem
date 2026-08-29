@@ -101,13 +101,20 @@ export const STANDARD_SOCKETS: CharacterSocketDef[] = [
   // Ground/root reference (bottom edge of the sprite) — used by dev-lab
   // ground-line overlays to catch root/foot drift across frames.
   { id: 'root', xOffsetFraction: 0, yOffsetFraction: 0.5 },
+  { id: 'ground', xOffsetFraction: 0, yOffsetFraction: 0.5 },
   // Floating interaction prompt ("💬 Nói chuyện" / "💬 Xem"), above the head.
   { id: 'prompt', xOffsetFraction: 0, yOffsetFraction: -0.68 },
   // Name label / vocabulary label, just above the head.
   { id: 'label', xOffsetFraction: 0, yOffsetFraction: -0.5 },
   // Star / collected badge — reserved separately from `label` so both
   // could be shown together without colliding.
-  { id: 'badge', xOffsetFraction: 0, yOffsetFraction: -0.5 }
+  { id: 'badge', xOffsetFraction: 0, yOffsetFraction: -0.5 },
+  // Reserved attachment points (no equipment in this game yet, but the
+  // contract is shared so a future outfit/weapon layer can bind here
+  // without inventing per-screen offsets).
+  { id: 'hand_main', xOffsetFraction: 0.22, yOffsetFraction: 0.08 },
+  { id: 'hand_off', xOffsetFraction: -0.18, yOffsetFraction: 0.08 },
+  { id: 'back', xOffsetFraction: 0, yOffsetFraction: -0.05 }
 ];
 
 /**

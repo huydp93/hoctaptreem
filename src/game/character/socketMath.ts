@@ -18,8 +18,10 @@ export function resolveSocketPosition(
   if (!socket) {
     throw new Error(`resolveSocketPosition: unknown socket id "${socketId}"`);
   }
+  const flipX = 'flipX' in sprite ? Boolean((sprite as { flipX?: boolean }).flipX) : false;
+  const xSign = flipX ? -1 : 1;
   return {
-    x: sprite.x + socket.xOffsetFraction * sprite.displayWidth,
+    x: sprite.x + socket.xOffsetFraction * xSign * sprite.displayWidth,
     y: sprite.y + socket.yOffsetFraction * sprite.displayHeight
   };
 }

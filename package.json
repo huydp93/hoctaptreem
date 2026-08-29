@@ -7,7 +7,13 @@
     "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0 --port 3000",
-    "clean-port": "fuser -k 3000/tcp 2>/dev/null || true"
+    "clean-port": "fuser -k 3000/tcp 2>/dev/null || true",
+    "test:manifest": "node scripts/validate-characters.mjs",
+    "test:animation": "node scripts/validate-characters.mjs",
+    "test:visual": "node scripts/validate-characters.mjs",
+    "test:attachment": "node scripts/test-runtime-contract.mjs",
+    "test:migration": "node scripts/test-migration.mjs",
+    "test": "npm run test:manifest && npm run test:attachment && npm run test:migration && tsc --noEmit"
   },
   "dependencies": {
     "phaser": "^3.90.0"

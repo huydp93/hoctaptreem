@@ -35,23 +35,23 @@ export const foxieManifest: CharacterManifest = {
       directions: {
         down: {
           textureKey: 'foxie_idle_down',
-          path: 'assets/characters/fox_front.png',
+          path: 'assets/characters/foxie_idle_down.png',
           frameCount: 1,
-          frameWidth: 171,
+          frameWidth: 192,
           frameHeight: 220
         },
         up: {
           textureKey: 'foxie_idle_up',
-          path: 'assets/characters/fox_back.png',
+          path: 'assets/characters/foxie_idle_up.png',
           frameCount: 1,
-          frameWidth: 162,
+          frameWidth: 192,
           frameHeight: 220
         },
         left: {
           textureKey: 'foxie_idle_left',
-          path: 'assets/characters/fox_side.png',
+          path: 'assets/characters/foxie_idle_left.png',
           frameCount: 1,
-          frameWidth: 171,
+          frameWidth: 192,
           frameHeight: 220
         }
       },
@@ -60,28 +60,28 @@ export const foxieManifest: CharacterManifest = {
     walk: {
       id: 'walk',
       label: 'Đi bộ',
-      frameDurationMs: 150,
+      frameDurationMs: 180,
       loop: true,
       directions: {
         down: {
           textureKey: 'foxie_walk_down',
           path: 'assets/characters/foxie_walk_down.png',
           frameCount: 4,
-          frameWidth: 178,
+          frameWidth: 192,
           frameHeight: 220
         },
         up: {
           textureKey: 'foxie_walk_up',
           path: 'assets/characters/foxie_walk_up.png',
           frameCount: 4,
-          frameWidth: 169,
+          frameWidth: 192,
           frameHeight: 220
         },
         left: {
           textureKey: 'foxie_walk_left',
           path: 'assets/characters/foxie_walk_side.png',
           frameCount: 4,
-          frameWidth: 173,
+          frameWidth: 192,
           frameHeight: 220
         }
       },

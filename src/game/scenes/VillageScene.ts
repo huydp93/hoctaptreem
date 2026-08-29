@@ -115,6 +115,12 @@ export class VillageScene extends Phaser.Scene {
     this.npcManager.spawnFromDefs(this, [wiseRabbitNPC], this.interactionManager, (npc) =>
       this.handleNPCInteract(npc)
     );
+    this.npcManager.getAll().forEach((npc) => {
+      this.physics.add.collider(this.player.sprite, npc.sprite);
+    });
+    this.events.on('movement-lock-requested', (locked: boolean) => {
+      this.inputManager.setMovementLocked(locked);
+    });
 
     // --- World objects for the letter-B quest ---
     villageWorldObjects.forEach((def) => this.spawnWorldObject(def));
@@ -135,8 +141,11 @@ export class VillageScene extends Phaser.Scene {
     this.playerController.update(delta);
     this.interactionManager.update(this.player, this.inputManager);
 
+    this.player.sprite.setDepth(10 + this.player.sprite.y);
+    this.npcManager.getAll().forEach((npc) => npc.sprite.setDepth(10 + npc.sprite.y));
+
     const target = this.interactionManager.getCurrentTarget();
-    this.touchInput.setInteractButtonVisible(!!target);
+    this.touchInput.setInteractButtonVisible(!!target && !this.inputManager.isMovementLocked());
   }
 
   // ---------------------------------------------------------------------
@@ -216,8 +225,10 @@ export class VillageScene extends Phaser.Scene {
     // dialogue branch below so no branch can forget to reset it.
     const withTalkAnimation = (onComplete: () => void) => {
       npc.setTalking(true);
+      this.inputManager.setMovementLocked(true);
       return () => {
         npc.setTalking(false);
+        this.inputManager.setMovementLocked(false);
         onComplete();
       };
     };

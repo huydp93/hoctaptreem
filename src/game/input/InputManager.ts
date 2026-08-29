@@ -22,9 +22,19 @@ export interface InputSource {
 export class InputManager {
   private sources: InputSource[] = [];
   private state: InputState = { moveX: 0, moveY: 0, interactJustPressed: false };
+  private movementLocked = false;
 
   registerSource(source: InputSource): void {
     this.sources.push(source);
+  }
+
+  /** Freeze WASD/joystick while a dialogue or completion overlay is open. */
+  setMovementLocked(locked: boolean): void {
+    this.movementLocked = locked;
+  }
+
+  isMovementLocked(): boolean {
+    return this.movementLocked;
   }
 
   /** Call once per scene update, BEFORE reading getState() */
@@ -34,11 +44,11 @@ export class InputManager {
     let interact = false;
 
     for (const source of this.sources) {
-      const vec = source.poll();
+      const vec = this.movementLocked ? { x: 0, y: 0 } : source.poll();
       // First source with non-zero input this frame wins on that axis.
       if (vec.x !== 0 && x === 0) x = vec.x;
       if (vec.y !== 0 && y === 0) y = vec.y;
-      if (source.pollInteract()) interact = true;
+      if (!this.movementLocked && source.pollInteract()) interact = true;
     }
 
     const length = Math.hypot(x, y);

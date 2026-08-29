@@ -80,7 +80,7 @@ export class NPC implements Interactable {
 
   setHighlighted(highlighted: boolean): void {
     this.prompt.setVisible(highlighted);
-    this.sprite.setScale(highlighted ? 1.06 : 1);
+    this.view.setEmphasisScale(highlighted ? 1.06 : 1);
   }
 
   /** Plays the NPC's real "talk" animation (mouth/ear/gesture motion)

@@ -1,106 +1,190 @@
-# Làng Chữ Cái (Letter Village)
+# Làng Chữ Cái — Học tiếng Việt & luyện nói
 
-Trò chơi giáo dục tiếng Việt cho trẻ 4–8 tuổi. Đây là **game thực sự** chạy trong browser bằng Phaser 3 (game loop/rendering/physics/camera/scenes đều do Phaser quản lý) — không phải website bài học hay dashboard.
+Sản phẩm giáo dục tiếng Việt cho trẻ **5–7 tuổi** (mẫu giáo lớn / lớp 1).
 
-## Tech Stack (bắt buộc, đã áp dụng)
-- **Phaser 3.90** — game engine (scenes, Arcade Physics, camera, input)
-- **TypeScript** — toàn bộ code game
-- **Vite** — dev server + build
-- **Node.js / npm** — môi trường build thực sự (không CDN, không 1 file HTML)
+Định hướng không chỉ **học chữ cái**, mà còn **luyện nói / phát âm**: nghe mẫu, nhận biết âm–vần–dấu, đọc micro, và theo dõi tiến bộ. Gameplay hiện tại là một **làng Phaser** — trẻ điều khiển nhân vật, gặp NPC, làm nhiệm vụ chữ. Các lớp luyện nói, phụ huynh, AI tạo bài nằm trên roadmap, chưa có trong bản chạy.
 
-Không dùng React cho gameplay, không dùng div/button giả lập game.
+## Tầm nhìn sản phẩm
+
+Trẻ học tiếng Việt như một hành trình trong làng:
+
+1. **Nghe mẫu** — nghe âm / vần / từ chuẩn
+2. **Nhận biết** — nhìn chữ, ghép âm–vần, chọn đúng đồ vật / từ
+3. **Luyện nói** — đọc micro, so với mẫu, nhận phản hồi thân thiện
+4. **Củng cố** — quest trong làng, sao, huy hiệu
+5. **Phụ huynh** — xem tiến bộ, duyệt bài AI (khi có)
+
+Ba vai trò mục tiêu:
+
+| Vai trò | Việc chính |
+| --- | --- |
+| **Trẻ** | Chơi trong làng, học chữ / âm / vần, luyện nói |
+| **Phụ huynh** | Theo dõi báo cáo, duyệt bài do AI tạo (roadmap) |
+| **Admin / giáo viên** | Quản lý nội dung bài học (roadmap) |
+
+Phạm vi kiến thức (theo khung sản phẩm):
+
+- Chữ cái, âm đầu, vần, dấu thanh
+- Từ ngữ gần gũi (đồ vật, con vật, gia đình…)
+- Đọc micro câu ngắn / từ đã học
+- **Không** nhắm ngữ pháp phức tạp hay văn bản dài
+
+Cách học: vui, ngắn, có hình / âm thanh, phản hồi nhẹ nhàng. Không thi đua gay gắt, không phạt.
+
+## Repo này đang là gì
+
+Đây là **game Phaser trong trình duyệt** — không phải website bài học, không phải dashboard phụ huynh.
+
+- Engine: Phaser 3 (game loop, render, Arcade Physics, camera, scenes)
+- Không dùng React cho gameplay
+- Lưu tiến độ local (`localStorage`) — chưa có backend / tài khoản
+
+Stack đang chạy:
+
+- **Phaser 3.90**
+- **TypeScript**
+- **Vite**
+- **Node.js / npm**
+
+> Khung sản phẩm đầy đủ gợi ý Next.js + PostgreSQL + Docker cho web bài học / phụ huynh / AI. **Repo này chưa chuyển sang stack đó.** Làng Phaser là vertical slice để chứng minh vòng chơi + hệ nhân vật. Phần luyện nói / phụ huynh / AI sẽ gắn vào khi làm, không giả định đã có.
 
 ## Chạy project
+
 ```bash
 npm install
-npm run dev     # http://localhost:3000 (Vite dev server)
-npm run build   # build production vào dist/
-npm run preview # xem thử bản build
+npm run dev     # http://localhost:3000
+npm run build   # dist/
+npm run preview
+npm test        # manifest nhân vật + contract + migration + tsc
 ```
-Đã test qua PM2 (`pm2 start ecosystem.config.cjs`) — chạy ổn định, không lỗi console.
 
-## Vertical Slice hiện đã hoàn thành ✅
-Toàn bộ vòng chơi trong đặc tả mục 15 đã chạy được:
-Start → điều khiển Hiệp Sĩ Cáo → gặp Thỏ Thông Thái → nhận nhiệm vụ giải cứu Công Chúa Tri Thức (chữ B) → tìm bàn/bút/bát → nhận sao → màn hình hoàn thành → chơi lại.
+Sandbox: `pm2 start ecosystem.config.cjs` (Vite port 3000).
 
-Cụ thể:
-- 1 map "Làng Chữ Cái" vẽ tay hoàn chỉnh (village_map.jpg, 1600x1073) với 7 khu vực (Nhà Cáo, Trường học, Vườn trái cây, Hồ nước, Tiệm kẹo, Tháp Phép Thuật, Sân chơi) được đánh dấu bằng nhãn nổi trên đúng vị trí công trình vẽ tay
-- 1 Player "Hiệp Sĩ Cáo" (Foxie): CharacterView data-driven — idle 1 frame + walk 4 frame thật (contact → passing) theo 4 hướng (right = mirror left), camera theo dõi, collision với **khối nhà/hồ** (không đè đường đá), cây/đá overlay trên cỏ, NPC, movement độc lập frame rate
-- 1 NPC "Thỏ Thông Thái": CharacterView (`wise_rabbit`) — idle + talk 4 frame khi hội thoại, giao nhiệm vụ
-- 6 world object tương tác với icon minh họa thật: bàn, bút, bát (đúng) / cốc, ghế, mèo (decoy)
-- Quest "Giải Cứu Công Chúa Tri Thức": +1 sao/từ đúng (thắp sáng 1 trang Sách Phép), chống spam (không cộng sao trùng), phản hồi thân thiện khi sai ("Trang sách này chưa sáng lên đâu!"), màn hình hoàn thành có hiệu ứng sao + nút Tiếp tục/Chơi lại
-- HUD: ⭐ số sao, 📖 nhiệm vụ hiện tại, 🧪 Development Lab, ⚙ cài đặt
-- Input: Keyboard (WASD/Arrow/E/Space) + Touch (virtual joystick trái, nút tương tác phải) — cùng chảy qua 1 `InputManager` duy nhất
-- Save: `SaveService` (localStorage) — điểm truy cập localStorage duy nhất trong codebase
-- Orientation guard: gợi ý xoay ngang trên mobile portrait
+## Đã có (vertical slice chữ B)
 
-## Kiến trúc
+Vòng chơi: Start → điều khiển Hiệp Sĩ Cáo → gặp Thỏ Thông Thái → nhận nhiệm vụ giải cứu Công Chúa Tri Thức (**chữ B**) → tìm bàn / bút / bát → nhận sao → hoàn thành → chơi lại.
+
+- Map **Làng Chữ Cái** vẽ tay (`village_map.jpg`, 1600×1073): Nhà Cáo, Trường học, Vườn trái cây, Hồ nước, Tiệm kẹo, Tháp Phép Thuật, Sân chơi
+- Player **Foxie**: CharacterView — idle 1 frame + walk 4 frame × 4 hướng (right = mirror left)
+- Collision: khối nhà / hồ **không chặn đường đá**; cây / đá overlay trên cỏ; đồ vật nhặt **không** là tường
+- NPC **Thỏ Thông Thái**: idle + talk 4 frame khi hội thoại
+- 6 world object: bàn, bút, bát (đúng) / cốc, ghế, mèo (nhiễu)
+- Quest data-driven: +1 sao / từ đúng, không cộng trùng, toast khi sai, màn hình hoàn thành
+- HUD: sao, nhiệm vụ, Development Lab, cài đặt
+- Input: bàn phím (WASD / mũi tên / E / Space) + joystick ảo — cùng `InputManager`
+- Save: `SaveService` (điểm localStorage duy nhất)
+- Gợi ý xoay ngang trên mobile portrait
+
+**Chưa có trong bản này:** micro, chấm phát âm, giọng đọc mẫu, tài khoản phụ huynh, AI tạo bài, báo cáo.
+
+## Roadmap — luyện nói & sản phẩm đầy đủ
+
+Thứ tự gợi ý (bám khung 5–7 tuổi). Chỉ làm khi được yêu cầu; README không tuyên bố đã xong.
+
+### 1. Nghe & đọc trong làng (gần gameplay hiện tại)
+
+- Âm thanh SFX / nhạc nền
+- Giọng đọc mẫu từng chữ / từ (Nghe mẫu)
+- Quest chữ C, rồi âm–vần–dấu — chủ yếu thêm data (`vocabulary/`, `quests/`)
+- Mini-game nhận biết: nghe → chọn đúng object trong làng
+
+### 2. Luyện nói (trọng tâm định hướng mới)
+
+- Đọc micro: từ / câu ngắn đã học
+- So khớp cơ bản với mẫu (độ tương đồng), phản hồi vui (“gần rồi!”, “hay lắm!”)
+- Không chấm điểm gay gắt; sai thì nghe lại mẫu rồi thử tiếp
+- STT / scoring nâng cao sau khi vòng cơ bản ổn
+
+### 3. Phụ huynh & nội dung
+
+- Báo cáo tiến bộ (chữ đã học, lần luyện nói, sao)
+- Xem trước / duyệt bài do AI tạo trước khi trẻ chơi
+- Tài khoản + lưu server (thay localStorage)
+
+### 4. AI tạo bài (sau khi có duyệt phụ huynh)
+
+- Sinh bài tập nhận biết / ghép âm / đọc micro theo vốn từ đã học
+- Luôn có bước phụ huynh xem trước — không đẩy bài thô cho trẻ
+
+Engine quest hiện tại đã tách data khỏi scene: thêm loại objective (nghe-tìm, ghép chữ, đọc micro) = thêm evaluator, không sửa `VillageScene`.
+
+## Kiến trúc code hiện tại
+
 ```
 src/
-  main.ts                    # Entry point
+  main.ts
   game/
-    config/gameConfig.ts     # Phaser.Game config (scale RESIZE, Arcade physics)
-    scenes/                  # BootScene → PreloadScene → VillageScene + UIScene + DevLabScene
-    character/               # CharacterRegistry, CharacterView, preload/animations/sockets
-    player/                  # Player (sprite/physics), PlayerController (input→velocity)
-    input/                   # InputManager (nguồn sự thật), KeyboardInput, TouchInput, VirtualJoystick
-    npc/                     # NPC, NPCManager
-    interactions/            # Interactable (contract), InteractionManager, WorldObject
-    quests/                  # QuestManager (data-driven engine), QuestState, objectiveEvaluators
-    education/               # LessonManager, VocabularyManager
-    ui/                      # HUD, DialogueUI, QuestUI, CompletionUI, FeedbackToast
-  data/                      # lessons/, vocabulary/, quests/, npc/, characters/, worldObjects.ts
-  services/SaveService.ts    # localStorage duy nhất (+ appearance migration v2)
-  types/                     # Education.ts, Save.ts, Input.ts, Character.ts
-public/assets/               # characters/ (idle + walk), npc/, environment/, objects/
+    config/gameConfig.ts
+    scenes/          # Boot → Preload → Village + UI + DevLab
+    character/       # CharacterRegistry, CharacterView
+    player/
+    input/           # InputManager, Keyboard, Touch, Joystick
+    npc/
+    interactions/    # Interactable, InteractionManager, WorldObject
+    quests/          # QuestManager, evaluators
+    education/       # LessonManager, VocabularyManager
+    ui/
+  data/              # lessons, vocabulary, quests, npc, characters, worldObjects
+  services/SaveService.ts
+  types/
+public/assets/       # characters/, npc/, environment/, objects/
 ```
 
-**Input flow:** Keyboard / Touch(Joystick) → `InputManager` → `PlayerController` / `InteractionManager`. Gameplay không biết đang chạy trên thiết bị nào.
+**Input:** Keyboard / Touch → `InputManager` → `PlayerController` / `InteractionManager`.
 
-**Quest flow:** NPC giao quest → `QuestManager.startQuest()` → người chơi tương tác world object → `tryCollectWord()` → `objectiveEvaluators` (theo `type`) quyết định đúng/gần đúng → cập nhật state + `SaveService` → khi đủ số lượng → `quest-completed` → UIScene hiện màn hình hoàn thành.
+**Quest:** NPC giao việc → tương tác object → `tryCollectWord()` → evaluator theo `type` → `SaveService` → `quest-completed`.
 
-**Thêm quest mới** (vần "an", thanh sắc, nghe-tìm, ghép chữ...) chỉ cần: thêm data (`data/vocabulary/*.ts`, `data/quests/*.ts`) + (nếu là loại objective mới) 1 evaluator trong `objectiveEvaluators.ts`. Không cần sửa `QuestManager`, `VillageScene`.
+Thêm quest (vần “an”, thanh sắc, nghe-tìm, đọc micro…) ≈ thêm file data + evaluator nếu loại mới.
 
 ## Hệ thống nhân vật 2D
 
-Mọi nhân vật đi qua **một runtime chung** (`CharacterView` + `CharacterRegistry`). Thêm body/action mới = thêm manifest trong `src/data/characters/`, không sửa Player/NPC/Village.
+Mọi nhân vật đi qua `CharacterView` + `CharacterRegistry`. Thêm body/action = thêm manifest `src/data/characters/`.
 
 | Body | Actions | Hướng |
 | --- | --- | --- |
-| `foxie` | idle (1 frame), walk (4 frame, gait contact→passing) | down / up / left authored, right = mirror left |
-| `wise_rabbit` | idle (1 frame), talk (4 frame) | down only (NPC đứng yên) |
+| `foxie` | idle (1), walk (4, gait contact→passing) | down / up / left; right = mirror |
+| `wise_rabbit` | idle (1), talk (4) | down (NPC đứng yên) |
 
-- Walk sheets: `public/assets/characters/foxie_walk_{down,side,up}.png` — 4 khung 192×220, chân cùng ground line
-- Idle sheets padded cùng kích thước walk để không giật neo khi đổi idle↔walk
-- Socket dùng chung (`root`, `ground`, `prompt`, `label`, `badge`, `hand_main`, `hand_off`, `back`) — mirror theo `flipX`
-- Save v2: `appearance.bodyId` (migrate từ v1, body lạ bị làm sạch về `foxie`)
+- Walk: `public/assets/characters/foxie_walk_{down,side,up}.png` — 4 khung 192×220
+- Idle cùng kích thước walk (không giật neo idle↔walk)
+- Socket chung: `root`, `ground`, `prompt`, `label`, `badge`, `hand_main`, `hand_off`, `back`
+- Save v2: `appearance.bodyId` (migrate từ v1)
 
-**Development Lab:** nút 🧪 trên HUD, hoặc `/?lab=1`. Dùng đúng CharacterView/Registry. Phím: B body, ←/→ action, ↑/↓ hướng, P play/pause, `,` `.` frame, S socket, ESC làng.
+**Development Lab:** HUD 🧪 hoặc `/?lab=1`. Phím: B body, ←/→ action, ↑/↓ hướng, P play/pause, `,` `.` frame, S socket, ESC làng.
 
-**Kiểm thử:**
 ```bash
-npm test              # manifest + attachment + migration + tsc
+npm test
 npm run test:manifest
 npm run test:attachment
 npm run test:migration
 ```
 
-## Đồ họa hiện tại
-- `assets/characters/foxie_idle_*.png` + `foxie_walk_*.png` — Foxie (kính, khăn xanh, vest, sách ENGLISH)
-- `assets/npc/rabbit_idle_down.png` + `rabbit_talk.png` — Thỏ Thông Thái
-- `assets/environment/village_map.jpg` — bản đồ làng vẽ tay 1600×1073
-- `assets/environment/tree.png`, `rock.png` — cây/đá
-- `assets/objects/obj_*.png` — 6 icon đồ vật
+## Đồ họa
 
-## Chưa làm
-- Âm thanh (SFX / giọng đọc / nhạc nền)
-- Nhiều quest/lesson khác ngoài chữ B
-- Backend thay localStorage
-- Settings panel đầy đủ
-- Visual layer trang bị (outfit/weapon) — socket đã dành sẵn, gameplay hiện không có trang bị
+- `assets/characters/foxie_idle_*.png`, `foxie_walk_*.png`
+- `assets/npc/rabbit_idle_down.png`, `rabbit_talk.png`
+- `assets/environment/village_map.jpg` — 1600×1073
+- `assets/environment/tree.png`, `rock.png`
+- `assets/objects/obj_*.png`
 
-## Gợi ý bước tiếp theo
-1. Chơi thử walk-cycle 4 hướng trên PC rồi tablet
-2. Mở Development Lab (`/?lab=1`) để soi gait / socket / audit
-3. Thêm quest chữ C (chỉ data) để kiểm chứng engine mở rộng
-4. Thêm âm thanh
+## Việc chưa làm (tóm tắt)
+
+| Hạng mục | Trạng thái |
+| --- | --- |
+| Làng + quest chữ B + nhân vật | Đã có |
+| Âm thanh / giọng đọc mẫu | Chưa |
+| Quest chữ C / âm–vần–dấu | Chưa (engine sẵn) |
+| **Luyện nói / micro / chấm phát âm** | **Chưa — định hướng chính tiếp theo** |
+| Dashboard phụ huynh / báo cáo | Chưa |
+| AI tạo bài + duyệt trước | Chưa |
+| Backend / tài khoản | Chưa (đang localStorage) |
+| Settings panel đầy đủ | Chưa |
+| Visual trang bị (socket đã có) | Chưa gắn gameplay |
+
+## Gợi ý bước tiếp
+
+1. Chơi walk-cycle 4 hướng (PC / tablet); đường đá phải đi được
+2. Development Lab (`/?lab=1`) soi gait / socket
+3. Quest chữ C (chỉ data) — kiểm chứng engine
+4. Giọng đọc mẫu cho chữ / từ đã học
+5. Vòng luyện nói đầu tiên: micro + so khớp đơn giản + phản hồi vui

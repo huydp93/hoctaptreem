@@ -11,7 +11,7 @@ export const wiseRabbitNPC: NPCDef = {
   id: 'npc_tho_thong_thai',
   name: 'Thỏ Thông Thái',
   characterId: 'wise_rabbit',
-  x: 650,
+  x: 360,
   y: 350,
   greetLines: [
     'Chào Hiệp Sĩ Cáo dũng cảm! Ta là Thỏ Thông Thái, người giữ cuốn Sách Phép của Làng Chữ Cái.',

@@ -25,7 +25,7 @@ Start → điều khiển Hiệp Sĩ Cáo → gặp Thỏ Thông Thái → nhậ
 
 Cụ thể:
 - 1 map "Làng Chữ Cái" vẽ tay hoàn chỉnh (village_map.jpg, 1600x1073) với 7 khu vực (Nhà Cáo, Trường học, Vườn trái cây, Hồ nước, Tiệm kẹo, Tháp Phép Thuật, Sân chơi) được đánh dấu bằng nhãn nổi trên đúng vị trí công trình vẽ tay
-- 1 Player "Hiệp Sĩ Cáo" (Foxie): CharacterView data-driven — idle 1 frame + walk 4 frame thật (contact → passing) theo 4 hướng (right = mirror left), camera theo dõi, collision với nhà/tháp/hồ + cây/đá + NPC, movement độc lập frame rate
+- 1 Player "Hiệp Sĩ Cáo" (Foxie): CharacterView data-driven — idle 1 frame + walk 4 frame thật (contact → passing) theo 4 hướng (right = mirror left), camera theo dõi, collision với **khối nhà/hồ** (không đè đường đá), cây/đá overlay trên cỏ, NPC, movement độc lập frame rate
 - 1 NPC "Thỏ Thông Thái": CharacterView (`wise_rabbit`) — idle + talk 4 frame khi hội thoại, giao nhiệm vụ
 - 6 world object tương tác với icon minh họa thật: bàn, bút, bát (đúng) / cốc, ghế, mèo (decoy)
 - Quest "Giải Cứu Công Chúa Tri Thức": +1 sao/từ đúng (thắp sáng 1 trang Sách Phép), chống spam (không cộng sao trùng), phản hồi thân thiện khi sai ("Trang sách này chưa sáng lên đâu!"), màn hình hoàn thành có hiệu ứng sao + nút Tiếp tục/Chơi lại

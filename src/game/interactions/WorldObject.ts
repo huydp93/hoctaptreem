@@ -36,6 +36,11 @@ export class WorldObject implements Interactable {
     this.onInteractCallback = onInteractCallback;
 
     this.sprite = scene.physics.add.staticSprite(def.x, def.y, def.spriteKey).setDepth(30);
+    // Collectibles are proximity-only. Keep the sprite visible; only the
+    // Arcade body is turned off so a 96×96 icon never walls off a path.
+    if (this.sprite.body) {
+      this.sprite.body.enable = false;
+    }
 
     const labelPos = resolveSocketPosition(this.sprite, 'label', WORLD_OBJECT_SOCKETS);
     this.label = scene.add

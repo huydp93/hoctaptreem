@@ -40,9 +40,9 @@ const ZONES: ZoneDef[] = [
 ];
 
 // Invisible collision footprints matching the painted buildings/pond so
-// the player can't walk through them, while everything else (paths,
-// grass, gardens) stays freely walkable. Values were measured directly
-// off village_map.jpg via coordinate-grid overlays.
+// the player can't walk through walls or water. Boxes hug BUILDING MASS
+// only — stone paths, doors, and grass around landmarks stay open.
+// Overlay trees/rocks sit on open grass, never on the painted paths.
 interface BlockerDef {
   x: number;
   y: number;
@@ -51,11 +51,22 @@ interface BlockerDef {
 }
 
 const BUILDING_BLOCKERS: BlockerDef[] = [
-  { x: 410, y: 200, width: 200, height: 110 }, // mushroom cottage
-  { x: 1350, y: 250, width: 350, height: 160 }, // school
-  { x: 235, y: 790, width: 250, height: 230 }, // candy shop
-  { x: 945, y: 760, width: 210, height: 420 }, // purple tower
-  { x: 800, y: 160, width: 420, height: 250 } // pond water
+  { x: 400, y: 195, width: 150, height: 85 }, // mushroom cottage body (door/path free)
+  { x: 1390, y: 205, width: 255, height: 125 }, // school walls (front walk free)
+  { x: 185, y: 800, width: 195, height: 125 }, // candy shop mass (door/path free)
+  { x: 962, y: 730, width: 70, height: 210 }, // tower shaft (left + door paths free)
+  { x: 800, y: 165, width: 350, height: 200 } // pond water (south path free)
+];
+
+const TREE_POSITIONS: Array<[number, number]> = [
+  [470, 560],
+  [90, 630],
+  [790, 900],
+  [1520, 920]
+];
+const ROCK_POSITIONS: Array<[number, number]> = [
+  [430, 680],
+  [1550, 640]
 ];
 
 /**
@@ -143,6 +154,7 @@ export class VillageScene extends Phaser.Scene {
 
     this.player.sprite.setDepth(10 + this.player.sprite.y);
     this.npcManager.getAll().forEach((npc) => npc.sprite.setDepth(10 + npc.sprite.y));
+    this.worldObjects.forEach((obj) => obj.sprite.setDepth(10 + obj.sprite.y));
 
     const target = this.interactionManager.getCurrentTarget();
     this.touchInput.setInteractButtonVisible(!!target && !this.inputManager.isMovementLocked());
@@ -177,39 +189,49 @@ export class VillageScene extends Phaser.Scene {
   private createObstacles(): Phaser.Physics.Arcade.StaticGroup {
     const group = this.physics.add.staticGroup();
 
-    // Invisible collision boxes over the painted buildings/pond so Foxie
-    // can't walk through walls or water, while the art itself provides
-    // all the visuals (no duplicate rectangle overlays needed anymore).
     BUILDING_BLOCKERS.forEach((b) => {
       const zone = this.add.zone(b.x, b.y, b.width, b.height);
       this.physics.add.existing(zone, true);
       group.add(zone);
     });
 
-    // A handful of real tree/rock scenery props in open grass areas
-    // (away from the already-painted garden/orchard) for extra depth
-    // and gentle exploration obstacles.
-    const treePositions: Array<[number, number]> = [
-      [700, 500], [900, 850], [500, 950], [1450, 470]
-    ];
-    treePositions.forEach(([x, y]) => {
-      const tree = group.create(x, y, 'env_tree') as Phaser.Physics.Arcade.Sprite;
-      tree.setDepth(20);
-      tree.body?.setSize(tree.width * 0.4, tree.height * 0.3);
-      tree.body?.setOffset(tree.width * 0.3, tree.height * 0.65);
+    TREE_POSITIONS.forEach(([x, y]) => {
+      this.addSceneryProp(group, 'env_tree', x, y, 110, 72, 0.28, 0.22, 0.72);
     });
-
-    const rockPositions: Array<[number, number]> = [
-      [660, 700], [1150, 620]
-    ];
-    rockPositions.forEach(([x, y]) => {
-      const rock = group.create(x, y, 'env_rock') as Phaser.Physics.Arcade.Sprite;
-      rock.setDepth(20);
-      rock.body?.setSize(rock.width * 0.6, rock.height * 0.5);
-      rock.body?.setOffset(rock.width * 0.2, rock.height * 0.4);
+    ROCK_POSITIONS.forEach(([x, y]) => {
+      this.addSceneryProp(group, 'env_rock', x, y, 64, 64, 0.5, 0.4, 0.5);
     });
 
     return group;
+  }
+
+  /** Places a decorative prop on grass with a small grounded collider. */
+  private addSceneryProp(
+    group: Phaser.Physics.Arcade.StaticGroup,
+    key: string,
+    x: number,
+    y: number,
+    displayW: number,
+    displayH: number,
+    bodyWFrac: number,
+    bodyHFrac: number,
+    bodyTopFrac: number
+  ): void {
+    const sprite = group.create(x, y, key) as Phaser.Physics.Arcade.Sprite;
+    sprite.setDisplaySize(displayW, displayH);
+    sprite.setDepth(10 + y);
+    // Sync the static body to the new display size FIRST. refreshBody()
+    // resets size/offset to the full sprite, so custom trunk/rock
+    // footprints must be applied after it — never before.
+    sprite.refreshBody();
+    const srcW = sprite.width;
+    const srcH = sprite.height;
+    const scaleX = displayW / srcW;
+    const scaleY = displayH / srcH;
+    const bodySrcW = (displayW * bodyWFrac) / scaleX;
+    const bodySrcH = (displayH * bodyHFrac) / scaleY;
+    sprite.body?.setSize(bodySrcW, bodySrcH);
+    sprite.body?.setOffset((srcW - bodySrcW) / 2, (displayH * bodyTopFrac) / scaleY);
   }
 
   // ---------------------------------------------------------------------
@@ -278,7 +300,8 @@ export class VillageScene extends Phaser.Scene {
     );
     this.worldObjects.set(def.id, worldObject);
     this.interactionManager.register(worldObject);
-    this.physics.add.collider(this.player.sprite, worldObject.sprite);
+    // Collectibles use proximity (InteractionManager), not solid physics —
+    // a 96×96 icon must never wall-off a painted path.
 
     // If this word was already learned in a previous session, show it as collected.
     if (SaveService.isWordLearned(def.vocabularyId)) {

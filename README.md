@@ -75,11 +75,32 @@ Vòng chơi: Start → điều khiển Hiệp Sĩ Cáo → gặp Thỏ Thông Th
 - Save: `SaveService` (điểm localStorage duy nhất)
 - Gợi ý xoay ngang trên mobile portrait
 
-**Chưa có trong bản này:** micro, chấm phát âm, giọng đọc mẫu, tài khoản phụ huynh, AI tạo bài, báo cáo.
+**Chưa có trong bản này:** tutorial/hướng dẫn chơi (onboarding), micro, chấm phát âm, giọng đọc mẫu, tài khoản phụ huynh, AI tạo bài, báo cáo.
 
 ## Roadmap — luyện nói & sản phẩm đầy đủ
 
 Thứ tự gợi ý (bám khung 5–7 tuổi). Chỉ làm khi được yêu cầu; README không tuyên bố đã xong.
+
+### 0. Onboarding — dạy chơi từ những giây đầu (đã nhận diện, chưa làm)
+
+Vấn đề: trẻ mới vào làng **chưa biết** (1) di chuyển bằng gì, (2) phải đi đâu để nhận
+nhiệm vụ bài học. Thỏ Thông Thái spawn sát nhà Cáo (~80px) nhưng trẻ không biết phải
+tiến lại gần và bấm nút; nhiệm vụ chỉ lộ ra sau khi tự tìm được Thỏ.
+
+Gói đề xuất (onboarding "học bằng cách làm", chỉ chạy lần đầu):
+
+- **Bước A — di chuyển**: bàn tay động chỉ vào joystick ảo (mobile) / phím WASD/mũi tên
+  (PC); qua bước khi `InputManager` có `moveX/moveY ≠ 0`.
+- **Bước B — tìm người giao bài**: dấu "❗" nhấp nháy trên đầu Thỏ + mũi tên chỉ hướng ở
+  mép màn hình + câu "Đi về phía dấu chấm than vàng nhé".
+- **Bước C — nhận nhiệm vụ**: nút 💬 phóng to/nhấp nháy khi đến gần Thỏ → trẻ bấm để mở
+  hội thoại cốt truyện và bắt đầu nhiệm vụ.
+- **Màn chào mục tiêu** (1 lần): "Công Chúa Tri Thức bị nhốt rồi! Đi gặp Thỏ Thông Thái
+  để nhận nhiệm vụ giải cứu."
+- Cờ `hasSeenTutorial` trong `SaveService` + nút "❓ Xem lại hướng dẫn".
+
+> Nên làm onboarding này **trước** các mini-game nhận biết — nó quyết định trẻ có vào
+> được vòng chơi hay không.
 
 ### 1. Nghe & đọc trong làng (gần gameplay hiện tại)
 
@@ -172,6 +193,7 @@ npm run test:migration
 | Hạng mục | Trạng thái |
 | --- | --- |
 | Làng + quest chữ B + nhân vật | Đã có |
+| Onboarding / tutorial (di chuyển → tìm Thỏ → nhận nhiệm vụ) | Chưa — đã nhận diện, ưu tiên cao |
 | Âm thanh / giọng đọc mẫu | Chưa |
 | Quest chữ C / âm–vần–dấu | Chưa (engine sẵn) |
 | **Luyện nói / micro / chấm phát âm** | **Chưa — định hướng chính tiếp theo** |
@@ -183,8 +205,9 @@ npm run test:migration
 
 ## Gợi ý bước tiếp
 
-1. Chơi walk-cycle 4 hướng (PC / tablet); đường đá phải đi được
-2. Development Lab (`/?lab=1`) soi gait / socket
-3. Quest chữ C (chỉ data) — kiểm chứng engine
-4. Giọng đọc mẫu cho chữ / từ đã học
-5. Vòng luyện nói đầu tiên: micro + so khớp đơn giản + phản hồi vui
+1. **Onboarding** — dạy di chuyển + tìm Thỏ Thông Thái + nhận nhiệm vụ (xem Roadmap mục 0)
+2. Chơi walk-cycle 4 hướng (PC / tablet); đường đá phải đi được
+3. Development Lab (`/?lab=1`) soi gait / socket
+4. Quest chữ C (chỉ data) — kiểm chứng engine
+5. Giọng đọc mẫu cho chữ / từ đã học
+6. Vòng luyện nói đầu tiên: micro + so khớp đơn giản + phản hồi vui
